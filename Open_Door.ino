@@ -11,12 +11,12 @@
  * 
  * *****************************************************************/
 
-#define BLINKER_PRINT Serial
 #define BLINKER_MQTT
-#define BLINKER_WIFI
-#define BLINKER_MIOT_LIGHT
+#define BLINKER_PRINT Serial
+#define BLINKER_MIOT_SENSOR
 
 #include <Blinker.h>
+#include <DHT.h>
 
 char auth[] = "c443e6424aef";
 char ssid[] = "girls";
@@ -25,9 +25,37 @@ char pswd[] = "233dzdnz";
 // 新建组件对象
 BlinkerButton Button1("btn-abc");
 BlinkerNumber Number1("num-abc");
+BlinkerButton Button2("btn-new");
+BlinkerNumber HUMI("humi");
+BlinkerNumber TEMP("temp");
 
+#define DHTPIN D7
+#define DHTTYPE DHT11   // DHT 11
+
+DHT dht(DHTPIN, DHTTYPE);
+
+float humi_read = 0, temp_read = 0;
 int counter = 0;
+//心跳包
+void heartbeat()
+{
+  float h = dht.readHumidity();
+  float t = dht.readTemperature();
 
+  if (isnan(h) || isnan(t))
+  {
+    BLINKER_LOG("Failed to read from DHT sensor!");
+  }
+  else
+  {
+    BLINKER_LOG("Humidity: ", h, " %");
+    BLINKER_LOG("Temperature: ", t, " *C");
+    humi_read = h;
+    temp_read = t;
+  }
+  HUMI.print(humi_read);
+  TEMP.print(temp_read);
+}
 // 按下按键即会执行该函数
 void button1_callback(const String &state)
 {
@@ -35,6 +63,26 @@ void button1_callback(const String &state)
   digitalWrite(12, !digitalRead(12));
   Blinker.delay(2500);
   digitalWrite(12, LOW);
+}
+void button2_callback(const String &state)
+{
+
+  float h = dht.readHumidity();
+  float t = dht.readTemperature();
+
+  if (isnan(h) || isnan(t))
+  {
+    BLINKER_LOG("Failed to read from DHT sensor!");
+  }
+  else
+  {
+    BLINKER_LOG("Humidity: ", h, " %");
+    BLINKER_LOG("Temperature: ", t, " *C");
+    humi_read = h;
+    temp_read = t;
+  }
+  HUMI.print(humi_read);
+  TEMP.print(temp_read);
 }
 void miotPowerState(const String &state)
 {
@@ -54,33 +102,36 @@ void miotPowerState(const String &state)
     BlinkerMIOT.print();
   }
 }
-
-// 如果未绑定的组件被触发，则会执行其中内容
-void dataRead(const String &data)
+void miotQuery(int32_t queryCode)
 {
-  BLINKER_LOG("Blinker readString: ", data);
-  counter++;
-  Number1.print(counter);
-}
+    BLINKER_LOG("MIOT Query codes: ", queryCode);
 
+    switch (queryCode)
+    {
+        case 0 :
+            BlinkerMIOT.temp(dht.readTemperature());
+            BlinkerMIOT.humi((int)dht.readHumidity());
+            BlinkerMIOT.print();
+            Number1.print(queryCode);
+            break;
+    }
+}
 void setup()
 {
-  // 初始化串口
   Serial.begin(115200);
-
-#if defined(BLINKER_PRINT)
-  BLINKER_DEBUG.stream(BLINKER_PRINT);
-#endif
-
-  // 初始化有LED的IO
+  BLINKER_DEBUG.stream(Serial);
+  BLINKER_DEBUG.debugAll();
   pinMode(12, OUTPUT);
   digitalWrite(12, LOW);
-  // 初始化blinker
+
   Blinker.begin(auth, ssid, pswd);
-  Blinker.attachData(dataRead);
   Button1.attach(button1_callback);
+  Button2.attach(button2_callback);
+  Blinker.attachHeartbeat(heartbeat);
+  dht.begin();
   //小爱同学务必在回调函数中反馈该控制状态
   BlinkerMIOT.attachPowerState(miotPowerState); //注册回调函数
+  BlinkerMIOT.attachQuery(miotQuery);
 }
 
 void loop()
