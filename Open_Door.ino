@@ -1,18 +1,4 @@
 /* *****************************************************************
- *
- * Download latest Blinker library here:
- * https://github.com/blinker-iot/blinker-library/archive/master.zip
- * 
- * 
- * Blinker is a platform with iOS and Android apps to 
- * control embedded hardware like Arduino, Raspberrt Pi.
- * You can easily build graphic interfaces for all your 
- * projects by simply dragging and dropping widgets.
- * 
- * Docs: https://doc.blinker.app/
- *       https://github.com/blinker-iot/blinker-doc/wiki
- * 
- * *****************************************************************
  * 
  * Blinker 库下载地址:
  * https://github.com/blinker-iot/blinker-library/archive/master.zip
