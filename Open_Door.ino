@@ -33,7 +33,7 @@ void button1_callback(const String &state)
 {
   BLINKER_LOG("get button state: ", state);
   digitalWrite(12, !digitalRead(12));
-  delay(2500);
+  Blinker.delay(2500);
   digitalWrite(12, LOW);
 }
 void miotPowerState(const String &state)
@@ -44,7 +44,7 @@ void miotPowerState(const String &state)
     digitalWrite(12, HIGH);
     BlinkerMIOT.powerState("on");
     BlinkerMIOT.print();
-      delay(2500);
+    Blinker.delay(2500);
   digitalWrite(12, LOW);
   }
   else if (state == BLINKER_CMD_OFF)
